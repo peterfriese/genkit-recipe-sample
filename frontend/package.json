@@ -1,0 +1,40 @@
+{
+  "main": "lib/index.js",
+  "scripts": {
+    "start": "next start",
+    "build": "next build",
+    "build:watch": "tsc --watch",
+    "dev": "next dev",
+    "lint": "next lint"
+  },
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@genkit-ai/ai": "^0.5.14",
+    "@genkit-ai/core": "^0.5.14",
+    "@genkit-ai/dotprompt": "^0.5.14",
+    "@genkit-ai/flow": "^0.5.14",
+    "@genkit-ai/googleai": "^0.5.14",
+    "@genkit-ai/vertexai": "^0.5.14",
+    "express": "^4.21.0",
+    "firebase": "^10.14.0",
+    "genkit": "^0.5.14",
+    "next": "14.2.13",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-icons": "^5.3.0",
+    "react-markdown": "^9.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.13",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.6.2"
+  }
+}
