@@ -8,13 +8,14 @@ import {vertexAI} from '@genkit-ai/vertexai';
 
 // Import models from the Vertex AI plugin.
 import {gemini15Flash} from '@genkit-ai/vertexai';
-import {defineDotprompt} from '@genkit-ai/dotprompt';
+import {defineDotprompt, dotprompt, promptRef} from '@genkit-ai/dotprompt';
 
 import {Storage} from '@google-cloud/storage';
 
 configureGenkit({
   plugins: [
     vertexAI({location: 'us-central1'}),
+    dotprompt()
   ],
   logLevel: 'debug',
   enableTracingAndMetrics: true,
@@ -23,7 +24,7 @@ configureGenkit({
 const fridgeItemSchema = z.object({
   title: z.string().describe('The title of the item.'),
   quantity: z.number().describe('How many of this item can be seen')
-});
+}).describe('An item of food that can be seen in the fridge.');
 
 const fridgeContentsSchema = z.array(fridgeItemSchema);
 
@@ -36,8 +37,15 @@ export const analyseFridgePrompt = defineDotprompt(
         imageUrl: z.string(),
       }),
     },
+    // Specify the output schema using Zod
     output: {
-      schema: fridgeContentsSchema
+      schema:
+        z.array(
+          z.object({
+            title: z.string().describe('The title of the item.'),
+            quantity: z.number().describe('How many of this item can be seen')
+          }).describe('An item of food that can be seen in the fridge.')
+        ).describe('The items of food that can be seen in the fridge.')
     },
     config: {
       temperature: 0.1,
@@ -54,9 +62,11 @@ many of each are there at least:
 `
 );
 
-export const generateRecipePrompt = defineDotprompt(
+const generateRecipePrompt = promptRef('generateRecipe');
+
+export const generateRecipePromptInCode = defineDotprompt(
   {
-    name: 'generateRecipePrompt',
+    name: 'generateRecipePromptInCode',
     model: gemini15Flash,
     input: {
       schema: z.object({
@@ -136,7 +146,7 @@ export const generateRecipe = defineFlow(
         mealType: input.mealType,
         cuisine: input.cuisine
       }
-    })
+    });
     return recipe.text();
   }
 );
