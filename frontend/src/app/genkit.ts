@@ -62,8 +62,10 @@ many of each are there at least:
 `
 );
 
+// Load the prompt from a .prompt file
 const generateRecipePrompt = promptRef('generateRecipe');
 
+// Alternatively, you can define the prompt inline
 export const generateRecipePromptInCode = defineDotprompt(
   {
     name: 'generateRecipePromptInCode',
