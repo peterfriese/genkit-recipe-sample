@@ -1,16 +1,16 @@
 import * as z from 'zod';
 
 // Import the Genkit core libraries and plugins.
-import { generate } from '@genkit-ai/ai';
-import { configureGenkit } from '@genkit-ai/core';
-import { defineFlow, runFlow } from '@genkit-ai/flow';
-import { vertexAI } from '@genkit-ai/vertexai';
+import {generate} from '@genkit-ai/ai';
+import {configureGenkit} from '@genkit-ai/core';
+import {defineFlow, runFlow} from '@genkit-ai/flow';
+import {vertexAI} from '@genkit-ai/vertexai';
 
 // Import models from the Vertex AI plugin.
-import { gemini15Flash } from '@genkit-ai/vertexai';
-import { defineDotprompt } from '@genkit-ai/dotprompt';
+import {gemini15Flash} from '@genkit-ai/vertexai';
+import {defineDotprompt} from '@genkit-ai/dotprompt';
 
-import { Storage } from '@google-cloud/storage';
+import {Storage} from '@google-cloud/storage';
 
 configureGenkit({
   plugins: [
@@ -117,18 +117,24 @@ export const analyseFridgeContents = defineFlow(
   }
 );
 
+const generateRecipeSchema = z.object({
+  fridgeContents: fridgeContentsSchema,
+  mealType: z.string(),
+  cuisine: z.string()
+});
+
 export const generateRecipe = defineFlow(
   {
     name: "generateRecipe",
-    inputSchema: fridgeContentsSchema,
+    inputSchema: generateRecipeSchema,
     outputSchema: z.string()
   },
-  async (fridgeContents) => {
+  async (input) => {
     const recipe = await generateRecipePrompt.generate({
       input: {
-        contents: fridgeContents,
-        mealType: 'dinner', // Add this line
-        cuisine: 'italian', // Add this line
+        contents: input.fridgeContents,
+        mealType: input.mealType,
+        cuisine: input.cuisine
       }
     })
     return recipe.text();
@@ -147,7 +153,11 @@ export const personalChef = defineFlow(
   },
   async (input) => {
     const fridgeContents = await runFlow(analyseFridgeContents, input.imageUrl);
-    const recipe = await runFlow(generateRecipe, fridgeContents)
+    const recipe = await runFlow(generateRecipe, {
+      fridgeContents: fridgeContents,
+      mealType: input.mealType,
+      cuisine: input.cuisine
+    });
     return recipe
   }
 );
