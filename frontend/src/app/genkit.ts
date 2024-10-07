@@ -11,6 +11,7 @@ import {gemini15Flash} from '@genkit-ai/vertexai';
 import {defineDotprompt, dotprompt, promptRef} from '@genkit-ai/dotprompt';
 
 import {Storage} from '@google-cloud/storage';
+import {imagen3} from '@genkit-ai/vertexai';
 
 configureGenkit({
   plugins: [
@@ -99,25 +100,7 @@ export const analyseFridgeContents = defineFlow(
     outputSchema: fridgeContentsSchema,
   },
   async (imageUrl) => {
-    let imageBase64: string;
-
-    if (imageUrl.startsWith('gs://')) {
-      // Handle Google Cloud Storage URL
-      const storage = new Storage();
-      const matches = imageUrl.match(/gs:\/\/([^\/]+)\/(.+)/);
-      if (!matches) throw new Error('Invalid gs:// URL format');
-      const [, bucketName, fileName] = matches;
-      const [fileContents] = await storage.bucket(bucketName).file(fileName).download();
-      const contentType = (await storage.bucket(bucketName).file(fileName).getMetadata())[0].contentType;
-      imageBase64 = `data:${contentType};base64,${fileContents.toString('base64')}`;
-    } else {
-      // Handle HTTP/HTTPS URL
-      const imageUrlData = await fetch(imageUrl);
-      const buffer = await imageUrlData.arrayBuffer();
-      const stringifiedBuffer = Buffer.from(buffer).toString('base64');
-      const contentType = imageUrlData.headers.get('content-type');
-      imageBase64 = `data:${contentType};base64,${stringifiedBuffer}`;
-    }
+    const imageBase64: string = await fetchImageAsBase64(imageUrl);
 
     const fridgeContents = await analyseFridgePrompt.generate<typeof fridgeContentsSchema>({
       input: {
@@ -153,6 +136,22 @@ export const generateRecipe = defineFlow(
   }
 );
 
+export const generateFinalResultImage = defineFlow(
+  {
+    name: "generateFinalResultImage",
+    inputSchema: z.string(),
+    outputSchema: z.string().optional()
+  },
+  async (input) => {
+    const mediaResponse = await generate({
+      prompt: `Photo of the final result of the following recipe: ${input}.`,
+      model: imagen3,
+      output: {format: 'media'}
+    })
+    return mediaResponse.media()?.url
+  }
+);
+
 export const personalChef = defineFlow(
   {
     name: "personalChef",
@@ -161,15 +160,48 @@ export const personalChef = defineFlow(
       mealType: z.string(),
       cuisine: z.string()
     }),
-    outputSchema: z.string()
+    outputSchema: z.object({
+      recipe: z.string(),
+      resultImage: z.string().optional()
+    })
   },
   async (input) => {
+    // 1: Analyse image - what's in the fridge?
     const fridgeContents = await runFlow(analyseFridgeContents, input.imageUrl);
+    // 2: Generate recipe based on supplies
     const recipe = await runFlow(generateRecipe, {
       fridgeContents: fridgeContents,
       mealType: input.mealType,
       cuisine: input.cuisine
     });
-    return recipe
+    // 3: Generate an inspirational image
+    const image = await runFlow(generateFinalResultImage, recipe);
+    return {
+      recipe,
+      resultImage: image
+    }
   }
 );
+
+async function fetchImageAsBase64(imageUrl: string) {
+  let imageBase64: string;
+
+  if (imageUrl.startsWith('gs://')) {
+    // Handle Google Cloud Storage URL
+    const storage = new Storage();
+    const matches = imageUrl.match(/gs:\/\/([^\/]+)\/(.+)/);
+    if (!matches) throw new Error('Invalid gs:// URL format');
+    const [, bucketName, fileName] = matches;
+    const [fileContents] = await storage.bucket(bucketName).file(fileName).download();
+    const contentType = (await storage.bucket(bucketName).file(fileName).getMetadata())[0].contentType;
+    imageBase64 = `data:${contentType};base64,${fileContents.toString('base64')}`;
+  } else {
+    // Handle HTTP/HTTPS URL
+    const imageUrlData = await fetch(imageUrl);
+    const buffer = await imageUrlData.arrayBuffer();
+    const stringifiedBuffer = Buffer.from(buffer).toString('base64');
+    const contentType = imageUrlData.headers.get('content-type');
+    imageBase64 = `data:${contentType};base64,${stringifiedBuffer}`;
+  }
+  return imageBase64;
+}
