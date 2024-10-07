@@ -11,8 +11,8 @@ import ReactMarkdown from 'react-markdown';
 const ImageUpload = ({ imageFile, imagePreview, handleFileUpload, setStep }) => (
   <div className="max-w-md w-full">
     <h1 className="text-3xl font-bold mb-6 text-center">What's in your fridge?</h1>
-    <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-      <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+    <div className="bg-white dark:bg-slate-800 shadow-lg rounded-lg p-6 mb-6">
+      <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
           <FiCamera className="w-12 h-12 text-gray-400 mb-4" />
           <p className="mb-2 text-sm text-gray-500">
@@ -47,13 +47,13 @@ const ImageUpload = ({ imageFile, imagePreview, handleFileUpload, setStep }) => 
 const MealCustomization = ({ mealType, setMealType, cuisine, setCuisine, handleSubmit, isGenerating }) => (
   <div className="max-w-md w-full">
     <h1 className="text-3xl font-bold mb-6 text-center">Customize Your Meal</h1>
-    <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+    <div className="bg-white dark:bg-slate-800 shadow-lg rounded-lg p-6 mb-6">
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">Meal Type</label>
         <select
           value={mealType}
           onChange={(e) => setMealType(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          className="w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 dark:bg-slate-700"
         >
           <option value="">Select meal type</option>
           <option value="breakfast">Breakfast</option>
@@ -67,7 +67,7 @@ const MealCustomization = ({ mealType, setMealType, cuisine, setCuisine, handleS
         <select
           value={cuisine}
           onChange={(e) => setCuisine(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          className="w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 dark:bg-slate-700"
         >
           <option value="">Select cuisine</option>
           <option value="italian">Italian</option>
@@ -97,7 +97,7 @@ const MealCustomization = ({ mealType, setMealType, cuisine, setCuisine, handleS
 const RecipeDisplay = ({ recipe, setStep }) => (
   <div className="max-w-2xl w-full">
     <h1 className="text-3xl font-bold mb-6 text-center">Your Personalized Recipe</h1>
-    <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+    <div className="bg-white dark:bg-slate-800 shadow-lg rounded-lg p-6 mb-6">
       <div className="prose max-w-none">
         <ReactMarkdown>{recipe}</ReactMarkdown>
       </div>
@@ -171,7 +171,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-100">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-100 dark:bg-slate-900">
       {error && (
         <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
           {error}

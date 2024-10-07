@@ -1,0 +1,18 @@
+---
+model: vertexai/gemini-1.5-flash
+config:
+  temperature: 0.9
+input:
+  schema:
+    contents(array):
+      title: string, the title of the item
+      quantity: number, how many of this item can be seen
+    mealType: string, what type of meal (breakfast, lunch, dinner, desert) to make
+    cuisine: string, genre of food (italian, korean, comfort food)
+---
+Generate a {{input.mealType}} recipe in the {{input.cuisine}} style that I can cook 
+with these ingredients:
+{{#each contents}}
+- {{this.title}}
+{{/each}}
+
