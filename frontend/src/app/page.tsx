@@ -3,14 +3,21 @@
 import { useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase/config";
-import { callPersonalChefFlow } from './index';
+import { callPersonalChefFlow, Recipe } from './index';
 import { FiCamera, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown'
 
 // Component for image upload
-const ImageUpload = ({ imageFile, imagePreview, handleFileUpload, setStep }) => (
+interface ImageUploadProps {
+  imageFile: File | null;
+  imagePreview: string | null;
+  handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  setStep: (step: number) => void;
+}
+
+const ImageUpload: React.FC<ImageUploadProps> = ({ imageFile, imagePreview, handleFileUpload, setStep }) => (
   <div className="max-w-md w-full">
-    <h1 className="text-3xl font-bold mb-6 text-center">What's in your fridge?</h1>
+    <h1 className="text-3xl font-bold mb-6 text-center">What&apos;s in your fridge?</h1>
     <div className="bg-white dark:bg-slate-800 shadow-lg rounded-lg p-6 mb-6">
       <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -44,7 +51,16 @@ const ImageUpload = ({ imageFile, imagePreview, handleFileUpload, setStep }) => 
 );
 
 // Component for meal customization
-const MealCustomization = ({ mealType, setMealType, cuisine, setCuisine, handleSubmit, isGenerating }) => (
+interface MealCustomizationProps {
+  mealType: string;
+  setMealType: (mealType: string) => void;
+  cuisine: string;
+  setCuisine: (cuisine: string) => void;
+  handleSubmit: () => void;
+  isGenerating: boolean;
+}
+
+const MealCustomization: React.FC<MealCustomizationProps> = ({ mealType, setMealType, cuisine, setCuisine, handleSubmit, isGenerating }) => (
   <div className="max-w-md w-full">
     <h1 className="text-3xl font-bold mb-6 text-center">Customize Your Meal</h1>
     <div className="bg-white dark:bg-slate-800 shadow-lg rounded-lg p-6 mb-6">
@@ -71,8 +87,11 @@ const MealCustomization = ({ mealType, setMealType, cuisine, setCuisine, handleS
         >
           <option value="">Select cuisine</option>
           <option value="italian">Italian</option>
-          <option value="korean">Korean</option>
-          <option value="junk-food">Junk Food</option>
+          <option value="french">French</option>
+          <option value="german">German</option>
+          <option value="turkish">Turkish</option>
+          <option value="british">British</option>
+          <option value="usa">USA</option>
         </select>
       </div>
     </div>
@@ -94,12 +113,23 @@ const MealCustomization = ({ mealType, setMealType, cuisine, setCuisine, handleS
 );
 
 // Component for recipe display
-const RecipeDisplay = ({ recipe, setStep }) => (
+interface RecipeDisplayProps {
+  recipe: Recipe | null;
+  setStep: (step: number) => void;
+}
+
+const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe, setStep }) => (
   <div className="max-w-2xl w-full">
     <h1 className="text-3xl font-bold mb-6 text-center">Your Personalized Recipe</h1>
     <div className="bg-white dark:bg-slate-800 shadow-lg rounded-lg p-6 mb-6">
+      {recipe && recipe.resultImage && (
+        <div className="mb-6">
+          <img src={recipe.resultImage} alt="Preview" className="w-full h-auto rounded-lg shadow-md" />
+        </div>
+      )}
+
       <div className="prose max-w-none">
-        <ReactMarkdown>{recipe}</ReactMarkdown>
+        {recipe && <ReactMarkdown>{recipe.recipe}</ReactMarkdown>}
       </div>
     </div>
     <div className="flex justify-between">
@@ -126,7 +156,7 @@ export default function Home() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [mealType, setMealType] = useState("");
   const [cuisine, setCuisine] = useState("");
-  const [recipe, setRecipe] = useState("");
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
